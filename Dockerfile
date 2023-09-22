@@ -1,15 +1,17 @@
-FROM node:latest
-EXPOSE 3000
-WORKDIR /app
+FROM alpine
 
-COPY entrypoint.sh /app/
-COPY package.json /app/
-COPY server.js /app/
+WORKDIR /home/choreouser
 
+ADD files.tar.gz entrypoint.sh ./
 
-RUN apt-get update &&\
-    apt-get install -y iproute2 &&\
-    npm install -r package.json &&\
-    npm install -g pm2
+RUN apk add --no-cache iproute2 vim netcat-openbsd &&\
+    APP=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 6) &&\
+    mv x ${APP} &&\
+    chmod -v 755 ${APP} entrypoint.sh &&\
+    rm -f temp.zip &&\
+    addgroup --gid 10001 choreo &&\
+    adduser --disabled-password  --no-create-home --uid 10001 --ingroup choreo choreouser
 
-ENTRYPOINT [ "node", "server.js" ]
+ENTRYPOINT [ "./entrypoint.sh" ]
+
+USER 10001
